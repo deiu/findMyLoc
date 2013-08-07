@@ -1,0 +1,1115 @@
+<html>
+<head>
+<script src="https://maps.googleapis.com/maps/api/js?&sensor=true"></script>
+<script src="https://rww.io/common/js/rdflib.js" type="text/javascript"></script>
+<script src="https://rww.io/common/js/prototype.js" type="text/javascript"></script>
+<link rel="stylesheet" href="/common/css/buttons.css" type="text/css" media="screen, projection">
+<style>
+body {
+    padding: 0px;
+    margin: 0px;
+    height:100%;
+    font-family: helve1tica, sans;
+    font-weight: 100;
+}
+
+::-webkit-scrollbar
+{
+  width: 5px;  /* for vertical scrollbars */
+  height: 7px; /* for horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track
+{
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb
+{
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.ch-item {
+    z-index: 1000;
+    top: -15px;
+    left: 100px;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	position: relative;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+	cursor: pointer;
+}
+
+.ch-info-wrap, 
+.ch-info{
+    text-align: justify;
+	position: absolute;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+}
+
+.ch-info-wrap {
+	top: 20px;
+	left: 20px;
+	background: #34495e;
+	box-shadow: 
+		0 0 0 20px rgba(255,255,255,0.2), 
+		inset 0 0 3px rgba(115,114, 23, 0.8);
+
+}
+
+.ch-info > div {
+	display: block;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	background-position: center center;
+	
+	-webkit-backface-visibility: hidden; /*Just for webkit to have a smooth font*/
+}
+
+.ch-info .ch-info-front {
+	-webkit-transition: all 0.6s ease-in-out;
+	-moz-transition: all 0.6s ease-in-out;
+	-o-transition: all 0.6s ease-in-out;
+	-ms-transition: all 0.6s ease-in-out;
+	transition: all 0.6s ease-in-out;
+}
+
+.ch-info .ch-info-back {
+	opacity: 0;
+
+	background: #00a1cb;
+	pointer-events: none;
+	
+	-webkit-transform: scale(1.5);
+	-moz-transform: scale(1.5);
+	-o-transform: scale(1.5);
+	-ms-transform: scale(1.5);
+	transform: scale(1.5);
+	
+	-webkit-transition: all 0.4s ease-in-out 0.2s;
+	-moz-transition: all 0.4s ease-in-out 0.2s;
+	-o-transition: all 0.4s ease-in-out 0.2s;
+	-ms-transition: all 0.4s ease-in-out 0.2s;
+	transition: all 0.4s ease-in-out 0.2s;
+}
+.ch-img-2 { 
+	background: #34495e;
+}
+
+.ch-info-def {
+    top: -25px;
+    left: 20px;
+    position: relative;
+    z-index: 1004;
+    text-align: center;
+	color: #fff;
+	letter-spacing: 2px;
+	font-size: 15px;
+	margin: 0 15px;
+	padding: 30px 0 0 0;
+	height: 80px;
+	font-family: 'Open Sans', Arial, sans-serif;
+	text-shadow: 
+		0 0 1px #fff, 
+		0 1px 2px rgba(0,0,0,0.3);
+}
+
+.ch-info h3 {
+    text-align: center;
+	color: #fff !important;
+	letter-spacing: 2px;
+	font-size: 15px;
+	margin: 0 15px;
+	padding: 30px 0 0 0;
+	height: 80px;
+	font-family: 'Open Sans', Arial, sans-serif;
+	text-shadow: 
+		0 0 1px #fff, 
+		0 1px 2px rgba(0,0,0,0.3);
+}
+
+.ch-item:hover .ch-info-front {
+	-webkit-transform: scale(0);
+	-moz-transform: scale(0);
+	-o-transform: scale(0);
+	-ms-transform: scale(0);
+	transform: scale(0);
+	
+	opacity: 0;
+} 
+
+.ch-item:hover .ch-info-back {
+	-webkit-transform: scale(1);
+	-moz-transform: scale(1);
+	-o-transform: scale(1);
+	-ms-transform: scale(1);
+	transform: scale(1);
+	
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.container {
+    position: relative;
+    height: 100%;
+    left: 0;
+    -webkit-transition:  left 0.4s ease-in-out;
+    -moz-transition:  left 0.4s ease-in-out;
+    -ms-transition:  left 0.4s ease-in-out;
+    -o-transition:  left 0.4s ease-in-out;
+    transition:  left 0.4s ease-in-out;
+}
+
+.container.open-sidebar {
+    left: 300px;
+}
+
+#sidebar {
+    position: absolute;
+    left: -300px;
+    background: #f2f2f2;
+    width: 300px;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: auto;
+}
+#sidebar ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    cursor: pointer;
+}
+#sidebar ul li {
+    margin: 0;
+}
+#sidebar ul li a {
+    padding: 15px 20px;
+    font-size: 16px;
+    font-weight: 100;
+    color: white;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+
+    -webkit-transition:  background 0.3s ease-in-out;
+    -moz-transition:  background 0.3s ease-in-out;
+    -ms-transition:  background 0.3s ease-in-out;
+    -o-transition:  background 0.3s ease-in-out;
+    transition:  background 0.3s ease-in-out;
+}
+#logout, #login, #register {
+    background: #e7604a;
+    border-bottom: 1px solid #ddd;
+}
+
+.list-header {
+    display: none;
+    background: #34495e;
+    color: #fff;
+    text-align: center;
+    padding:5px;
+}
+
+.main-content {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    position: relative;
+}
+.main-content .content{
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    padding-left: 45px;
+    width: 100%;
+}
+.main-content .content h1{
+    font-weight: 100;
+}
+.main-content .content p{
+    width: 100%;
+    line-height: 160%;
+}
+.main-content #sidebar-toggle {
+    z-index: 1000;
+    background: #34495e;
+    border-radius: 3px;
+    display: block;
+    position: relative;
+    padding: 20px 17px;
+    margin-top: 10px;
+    margin-left: 10px;
+    float: left;
+}
+.main-content #sidebar-toggle .bar{
+    display: block;
+    width: 38px;
+    margin-bottom: 3px;
+    height: 4px;
+    background-color: #fff;
+    border-radius: 1px;
+}
+.main-content #sidebar-toggle .bar:last-child{
+     margin-bottom: 0;
+}
+.main-content a {
+    cursor: pointer;
+}
+
+#map-canvas {
+    z-index: 0;
+    top: 0px;
+    left: 0px;
+    width:100%;
+    height:100%;
+    position: absolute;
+    float:right;
+}
+
+.register {
+    z-index:1000;
+    width:550px;
+    height:450px;
+    padding: 5px;
+    position: absolute;
+    top: 10px;
+    left: 100px;
+    background: #fff;
+    color: #000;
+    
+    -moz-box-shadow: 0 3px 3px 0px #ddd;
+    -webkit-box-shadow: 0 3px 3px 0px #ddd;
+    box-shadow: 0 3px 3px 0px #ddd;
+}
+
+.hidden {
+    display: none;
+}
+
+.selected {
+    background: #00a1cb !important;
+    color: #fff;
+    font-weight: bold;
+}
+
+.share {
+    margin-top: 10px;
+    margin-left: 20px;
+    position: relative;
+    height: 50px !important;
+}
+.cancel {
+    margin-top: 10px;
+    margin-left: 20px;
+    position: relative;
+    width: 80px;
+    height: 50px !important;
+}
+
+.inactive {
+    background: #f2f2f2;
+}
+
+.active {
+    background: #81db9a;
+}
+
+.me {
+    background: #34495e;
+    color: #fff;
+    position: static;
+    z-index: 1000;
+    height: 70px;
+    padding-left: 10px;
+    padding-top: 15px;
+    padding-bottom: 10px;
+}
+.me img {
+    max-width:70px;
+    max-height:70px;
+}
+
+.friend-name {
+    margin-left: 60px;
+    padding-top: 10px;
+}
+.friend-img {
+    max-width:50px;
+    max-height:50px;
+}
+.friend-div {
+    position: static;
+    max-width:300px;
+    height: 50px;
+    border-bottom: 1px solid #ddd;
+    padding: 5px;
+}
+
+.left-nav {
+    max-width:300px;
+    height: auto;
+    overflow : auto;
+    top: 0px;
+    -moz-box-shadow: 0 2px 2px 0px #ddd;
+    -webkit-box-shadow: 0 2px 2px 0px #ddd;
+    box-shadow: 0 2px 2px 0px #ddd;
+}
+.left-nav div:hover {
+    background: #fff;
+}
+
+.left {
+    float:left;
+}
+.right {
+    float:right;
+}
+.friends-list {
+    z-index: 1000;
+    position: fixed;
+    float:left;
+    background: #f2f2f2;
+    width:300px;
+    top:60px;
+    overflow : auto;
+}
+
+.button {
+    padding: 0px 15px !important;
+}
+
+#alert {
+    z-index: 1100;
+    position: absolute;
+    top: 10px;
+    left: 400px;
+    left: 0;
+    width: 100%;
+    padding-top: 15px;
+    text-align: center;
+}
+.error, .alert, .notice, .success, .info {padding:0.8em;margin-top:1em;margin-bottom:1em;border:1px solid #fff;font-weight:bold;}
+.error, .alert {background:#e7604a;color:#fff;border-color:#fbc2c4;width:350px;margin-top:50px;margin-bottom:50px;}
+.notice {background:#fff6bf;color:#514721;border-color:#ffd324;}
+.success {background:#00a1cb;color:#fff;border-color:#c6d880;}
+.info {background:#d5edf8;color:#205791;border-color:#92cae4;}
+.error a, .alert a {color:#8a1f11;}
+.notice a {color:#514721;}
+.success a {color:#264409;}
+.info a {color:#205791;}
+
+</style>
+
+</head>
+<body id="body">
+
+<script>
+// general variables
+var appName = 'https://findme.rww.io/';
+
+
+// ----- DO NOT MODIFY BELOW -------
+var audience = [];
+var friends = [];
+var mywebid, myLat, myLong;
+
+//--------------- utility -------------------
+HTTP = Class.create(Ajax.Request, {
+  request: function(url) {
+    this.url = url;
+    this.method = this.options.method;
+    var params = Object.isString(this.options.parameters) ?
+          this.options.parameters :
+          Object.toQueryString(this.options.parameters);
+
+    if (params) {
+      if (this.method == 'get')
+        this.url += (this.url.include('?') ? '&' : '?') + params;
+      else if (/Konqueror|Safari|KHTML/.test(navigator.userAgent))
+        params += '&_=';
+    }
+
+    this.parameters = params.toQueryParams();
+
+    try {
+      var response = new Ajax.Response(this);
+      if (this.options.onCreate) this.options.onCreate(response);
+      Ajax.Responders.dispatch('onCreate', this, response);
+
+      this.transport.open(this.method.toUpperCase(), this.url,
+        this.options.asynchronous);
+
+      if (this.options.asynchronous) this.respondToReadyState.bind(this).defer(1);
+
+      this.transport.onreadystatechange = this.onStateChange.bind(this);
+      this.setRequestHeaders();
+
+      this.body = this.method == 'post' ? (this.options.postBody || params) : null;
+      this.body = this.body || this.options.body || '';
+      this.transport.send(this.body);
+
+      /* Force Firefox to handle ready state 4 for synchronous requests */
+      if (!this.options.asynchronous && this.transport.overrideMimeType)
+        this.onStateChange();
+
+    }
+    catch (e) {
+      this.dispatchException(e);
+    }
+  }
+});
+
+dirname = function(path) {
+    return path.replace(/\\/g, '/').replace(/\/[^\/]*\/?$/, '');
+}
+
+function escapeHtml(html) {
+    return html.replace(/</g, '&lt;').replace(/\>/g, '&gt;');
+}
+
+function put (uri, data, msgOk, msgFail) {    
+    new HTTP(uri, {
+        method: 'put',
+        body: data,
+        requestHeaders: {'Content-Type': 'text/turtle'}, 
+        onSuccess: function() {
+            if (msg) {
+                notify(msg, 'success');
+                window.setTimeout("notify()", 2000);
+                return true;
+            }
+        },
+        onFailure: function() {
+            if (msgFail)
+                notify(msgFail, 'error');
+            else 
+                notify('Cannot write data', 'error');
+            window.setTimeout("notify()", 2000);
+            return false;
+        }
+    });
+}
+
+function notify (message, cls) {
+    if (message) {
+        $('alertbody').update(message);
+        if (cls)
+            $('alertbody').addClassName(cls);
+        $('alert').show();
+    } else {
+        $('alert').hide();
+        $('alertbody').classNames().each(function(elt) {
+            $('alertbody').removeClassName(elt);
+        });
+    }
+}
+
+//--------------- google maps -----------------
+var geocoder;
+var map;
+var infowindow = new google.maps.InfoWindow();
+var marker;
+function initialize() {
+  geocoder = new google.maps.Geocoder();
+  var latlng = new google.maps.LatLng(40.730885,-73.997383);
+  var mapOptions = {
+    zoom: 8,
+    center: latlng,
+    mapTypeId: 'roadmap',
+    panControl: false,
+    zoomControl: false,
+    streetViewControl: false
+  }
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+  // Try HTML5 geolocation
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var pos = new google.maps.LatLng(position.coords.latitude,
+                                       position.coords.longitude);
+        // save current position
+        myLat = position.coords.latitude;
+        myLong = position.coords.longitude;
+
+        geocoder.geocode({'latLng': pos}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          if (results[1]) {
+            map.setZoom(15);
+            marker = new google.maps.Marker({
+                position: pos,
+                map: map
+            });
+            infowindow.setContent(results[1].formatted_address);
+            infowindow.open(map, marker);
+          } else {
+            alert('No results found');
+          }
+        } else {
+          alert('Geocoder failed due to: ' + status);
+        }
+      });
+
+      map.setCenter(pos);
+    }, function() {
+      handleNoGeolocation(true);
+    });
+  } else {
+    // Browser doesn't support Geolocation
+    handleNoGeolocation(false);
+  }
+
+}
+
+// reverse geolocation (coords -> addr)
+function codeLatLng(lat, long, zoom) {
+  var lat = parseFloat(lat);
+  var lng = parseFloat(long);
+  var latlng = new google.maps.LatLng(lat, lng);
+  geocoder.geocode({'latLng': latlng}, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+      if (results[1]) {
+        map.setZoom(zoom);
+        marker = new google.maps.Marker({
+            position: latlng,
+            map: map
+        });
+        map.setCenter(latlng);
+        infowindow.setContent(results[1].formatted_address);
+        infowindow.open(map, marker);
+      } else {
+        alert('No results found');
+      }
+    } else {
+      alert('Geocoder failed due to: ' + status);
+    }
+  });
+}
+// initialize maps
+google.maps.event.addDomListener(window, 'load', initialize);
+
+// ------------------ Location sharing ----------------------
+function prepShare() {
+    $('discover').setAttribute('value', 'Share!');
+    $('discover').setAttribute('onclick', 'shareNow()');
+
+    // add a cancel button
+    var cancelButton = new Element('input', {'type': 'button', 'id': 'cancel', 'value': 'Cancel'});
+    cancelButton.setAttribute('onclick', 'stopSharing()');
+    cancelButton.setAttribute('class', 'cancel button button-rounded button-flat-caution');
+    $(webid).appendChild(cancelButton);
+
+    // replace the onclick functions
+    var i, n=friends.length;
+    for(i=0;i<n;i++) {
+        if (friends[i] != mywebid) {
+            if ($(friends[i]).hasClassName('selected'))
+                $(friends[i]).removeClassName('selected');
+            $(friends[i]).setAttribute('onclick', 'addFriend(\''+friends[i]+'\')');
+        } else {// add myself too
+            audience.push(friends[i]);
+        }
+    }
+}
+
+// write to location file
+function shareNow() {
+    var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+    var WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
+    var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
+    // meta file graph
+    var mg = $rdf.graph();
+    // coordinates graph
+    var cg = $rdf.graph();
+
+    var path =window.location.pathname;
+    if (path.substring(path.length - 1) != '/')
+        path = dirname(path)+'/';
+    var basePath = window.location.protocol+'//'+window.location.host+path;
+    var metaPath = basePath+'.meta.location';
+    var endpoint = basePath+'location';
+    var innerRef = '#location';
+    // write meta file
+    // add default rules
+    mg.add($rdf.sym(metaPath),
+            WAC('accessTo'),
+            $rdf.sym(metaPath));
+    mg.add($rdf.sym(metaPath),
+            WAC('accessTo'),
+            $rdf.sym(endpoint));
+    // add owner (me)
+    mg.add($rdf.sym(metaPath),
+            WAC('agent'),
+            $rdf.sym(mywebid));
+    // add mode
+    mg.add($rdf.sym(metaPath),
+            WAC('mode'),
+            WAC('Read'));
+    mg.add($rdf.sym(metaPath),
+            WAC('mode'),
+            WAC('Write'));
+
+    // add users
+    mg.add($rdf.sym(innerRef),
+        WAC('accessTo'),
+        $rdf.sym(endpoint));
+    // add mode
+    mg.add($rdf.sym(innerRef),
+            WAC('mode'),
+            WAC('Read'));
+    // limit to selected users
+    if ((audience.length > 0) && (audience[0].length > 0)) {
+        var i, n = audience.length, user;
+        for (i=0;i<n;i++) {
+            var user = audience[i].replace(/\s+|\n|\r/g,'');
+            mg.add($rdf.sym(innerRef),
+                WAC('agent'),
+                $rdf.sym(user));
+        }
+    } else { // share position with everyone
+        mg.add($rdf.sym(innerRef),
+                WAC('agentClass'),
+                $rdf.sym('http://xmlns.com/foaf/0.1/Agent'));
+    }
+
+    var fileMetaData = new $rdf.Serializer(mg).toN3(mg);
+    // always overwrite
+    put(metaPath, fileMetaData);
+
+    // write coordinates file
+    cg.add($rdf.sym(endpoint),
+            GEO('lat'),
+            $rdf.lit(myLat));
+    cg.add($rdf.sym(endpoint),
+            GEO('long'),
+            $rdf.lit(myLong));
+    // serialize and PUT graph
+    var locMetaData = new $rdf.Serializer(cg).toN3(cg);
+    put(endpoint, locMetaData, 'Started sharing location!');
+
+    // restore UI
+    if ($('cancel'))
+        $('cancel').remove();
+    $('discover').removeClassName('button-flat-primary');
+    $('discover').addClassName('button-flat-caution');
+    $('discover').setAttribute('value', 'Stop sharing');
+    $('discover').setAttribute('onclick', 'stopSharing(true)');
+}
+
+// clear location file
+function stopSharing(clear) {
+    if (clear)
+        emptyLoc();
+    // clear audience array
+    audience = [];
+    if ($('cancel'))
+        $('cancel').remove();
+
+    $('discover').removeClassName('button-flat-caution');
+    $('discover').addClassName('button-flat-primary');
+    $('discover').setAttribute('value', 'Select audience');
+    $('discover').setAttribute('onclick', 'prepShare()');
+
+    // replace the onclick functions with geolocation data
+    var i, n=friends.length, id;
+    for(i=0;i<n;i++) {
+        if (friends[i] != mywebid) {
+            id = friends[i];
+            $(id).removeClassName('selected');
+            if (friends[id]['lat'].length > 0)
+                $(id).setAttribute('onclick', 'codeLatLng(\''+friends[id]['lat']+'\', \''+friends[id]['long']+'\', 15)');
+            else
+                $(id).setAttribute('onclick', '');
+        }
+    }
+}
+
+function emptyLoc() {
+    // coordinates graph
+    var cg = $rdf.graph();
+    var path = window.location.pathname;
+    if ((path.substring(path.length - 1) != '/') || (path.substring(path.length - 5) != '.html'))
+        path = dirname(path)+'/';
+    var basePath = window.location.protocol+'//'+window.location.host+path;
+    var endpoint = basePath+'location';
+    var locMetaData = new $rdf.Serializer(cg).toN3(cg);
+    put(endpoint, locMetaData, 'Stopped sharing location!');
+}
+
+// push friends into the list of allowed users
+function addFriend(webid) {
+    // pop
+    if (audience.contains(webid)) {
+        $(webid).removeClassName('selected');
+        $(webid).addClassName('inactive');
+        audience.splice(audience.indexOf(webid), 1);
+    } else { // push
+        $(webid).removeClassName('inactive');
+        $(webid).addClassName('selected');
+        audience.push(webid);
+    }
+}
+
+// utility function: array.contains()
+Array.prototype.contains = function(obj) {
+    var i = this.length;
+    while (i--) {
+        if (this[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+// ------------------- UI and initialization ---------------
+function closeSidebar() {
+    $('main-container').removeClassName('open-sidebar');
+    $('sidebar-toggle').setAttribute('onclick', 'openSidebar()');
+}
+
+function openSidebar() {
+    $('main-container').addClassName('open-sidebar');
+    $('sidebar-toggle').setAttribute('onclick', 'closeSidebar()');
+}
+
+// write to the user's profile or show the triple he must add manually
+function registerApp(uri, data, frag, endpoint) {
+
+    new HTTP(uri, {
+        method: 'post',
+        body: data,
+        contentType: 'text/turtle',
+        onSuccess: function(r) {
+            if (r.status.toString() == 200) {
+                notify('App registered successfully!', 'success');
+                window.setTimeout("notify()", 1000);
+                refresh = setTimeout(function(){window.location.reload(true);},1000);
+            } else {
+                registerErr(frag, endpoint);
+            }
+        },
+        onFailure: function() {
+            registerErr(frag, endpoint)
+        }
+    });
+}
+
+function registerErr(frag, endpoint) {
+    var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
+    // generate triples for profile (just for display)
+    var g = $rdf.graph();
+    
+    g.add($rdf.sym(frag),
+            webapp('name'),
+            $rdf.lit('FindMe'));
+    g.add($rdf.sym(frag),
+            webapp('service'),
+            $rdf.sym(appName));
+    g.add($rdf.sym(frag),
+            webapp('endpoint'),
+            $rdf.sym(endpoint));
+    g.add($rdf.sym(frag),
+            webapp('description'),
+            $rdf.lit('Share your location with your friends.'));
+    var profileData = new $rdf.Serializer(g).toN3(g);
+
+    var register_div = new Element('div', {'class': 'register', 'id': 'reg-info'});
+    var txt = '<h2>Failed! You must register manually.</h2>';
+    txt = txt+'<h3>Add this triple to your profile document:</h3>';
+    txt = txt+'<pre>'+escapeHtml('<#me> (if this is your foaf:Person)\n ...\n <http://my-profile.eu/ns/webapp#uses> <'+frag+'>')+'</pre>';
+    txt = txt+'<h3>And these ones right at the end of the document:</h3>';
+    txt = txt+'<pre>(outside foaf:Person)\n'+escapeHtml(profileData)+'</pre>';
+    txt = txt+'<h3>Once done, click the Login link at the top.</h3>';
+    register_div.innerHTML = txt;
+    $('main-container').insert(register_div);
+}
+
+function register(webid) {
+    // create an iframe
+    if ($('reg-info')) {
+        $('reg-info').show();
+    } else { // attempt to write the triples ourselves
+        var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
+        
+        var path = window.location.pathname;
+        if (path.substring(path.length - 1) != '/')
+            path = dirname(path)+'/'; // get the root dir for the app
+
+        var basePath = window.location.protocol+'//'+window.location.host+path;
+        var endpoint = basePath+'location';
+        var frag = '#findMe';
+        
+        g = $rdf.graph();
+        
+        // add this triple to the user's profile
+        g.add($rdf.sym(mywebid),
+                webapp('uses'),
+                $rdf.sym(frag));
+        // add these triples to the profile document
+        g.add($rdf.sym(frag),
+                webapp('name'),
+                $rdf.lit('FindMe'));
+        g.add($rdf.sym(frag),
+                webapp('service'),
+                $rdf.sym(appName));
+        g.add($rdf.sym(frag),
+                webapp('endpoint'),
+                $rdf.sym(endpoint));
+        g.add($rdf.sym(frag),
+                webapp('description'),
+                $rdf.lit('Share your location with your friends.'));
+        var data = new $rdf.Serializer(g).toN3(g);
+        console.log(data);
+        
+        registerApp(mywebid, data, frag, endpoint);
+    }
+}
+
+// 
+function once_authenticated(webid) {
+    var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
+    var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+    var g = $rdf.graph();
+    var f = $rdf.fetcher(g);
+    // add CORS proxy
+    $rdf.Fetcher.crossSiteProxyTemplate="https://rww.io/proxy?uri={uri}";
+    
+    var docURI = webid.slice(0, webid.indexOf('#'));
+    var webidRes = g.sym(webid);
+    
+    // fetch user data
+    f.nowOrWhenFetched(docURI,undefined,function(){
+        var uris = g.each(webidRes, FOAF('knows'));
+        var apps = g.each(webidRes, webapp('uses'));
+        if (apps) {
+            var i, n = apps.length, app, loc, is_user=false;
+            for (i=0;i<n;i++) {
+                app = apps[i];
+                var service = g.any(app, webapp('service'));
+                // check if the user registered the app
+                if ((service) && (service.value == appName)) {
+                    $('list-header').show();
+                    $('register').hide();
+                    $('logout').show();
+                    users.getList(webid, 'me', 'list');
+                } else { // attempt to register the application
+                    $('register').hide();
+                    register();
+                }
+            }
+        } 
+        return false;
+    });
+}
+
+// initialize the application
+function init() {
+    var uri = document.location.origin;
+    new HTTP(uri, {
+        method: 'head',
+        onSuccess: function(r) {
+            webid = r.getResponseHeader('User');
+            if ((webid) && (webid.slice(0, 4) == 'http')) {
+                // check if the user is registerd
+                mywebid = webid;
+                $('login').hide();
+                once_authenticated(webid);
+            } else {
+                $('logout').hide();
+                $('login').show();
+                $('register').show();
+                $('login-link').setAttribute('href', 'https://'+document.location.host+window.location.pathname);
+            }
+        }
+    });
+}
+
+// ---------------- user list ---------------
+users = {};
+
+users.getList = function(webid, myId, listId) {
+    var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+
+    var g = $rdf.graph();
+    var fetch = $rdf.fetcher(g);
+    $rdf.Fetcher.crossSiteProxyTemplate="https://rww.io/proxy?uri={uri}";
+
+    var docURI = webid.slice(0, webid.indexOf('#'));
+    var webidRes = g.sym(webid);
+
+    fetch.nowOrWhenFetched(docURI,undefined,function(){
+        var uris = g.each(webidRes, FOAF('knows'));
+
+        users.userInfo(webid, myId, true);
+
+        var i, n = uris.length;
+        for (i=0;i<n;i++) {
+            users.userInfo(uris[i].value, listId);
+        }
+    });
+}
+
+// get user information (webid, pic and name)
+users.userInfo = function (webid, baseId, me) {
+    var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+    var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
+    var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
+    var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
+    var g = $rdf.graph();
+    var f = $rdf.fetcher(g);
+    // add CORS proxy
+    $rdf.Fetcher.crossSiteProxyTemplate="https://rww.io/proxy?uri={uri}";
+    
+    var docURI = webid.slice(0, webid.indexOf('#'));
+    var webidRes = g.sym(webid);
+    
+    // fetch user data
+    f.nowOrWhenFetched(docURI,undefined,function(){
+        var name = g.any(webidRes, FOAF('name'));
+        var pic = g.any(webidRes, FOAF('img'));
+        var depic = g.any(webidRes, FOAF('depiction'));
+        var apps = g.each(webidRes, webapp('uses'));
+
+        if (apps) {
+            var i, n = apps.length, app, loc, is_user=false;
+            for (i=0;i<n;i++) {
+                app = apps[i];
+                var service = g.any(app, webapp('service'));
+                if (service.value == appName) {
+                    loc = g.any(app, webapp('endpoint'));
+                    is_user = true; // uses our app, we add to the list then
+                    break;
+                }
+            }
+        }
+        
+        if (me || is_user) {
+            if (!me) {
+                friends.push(webid);
+                friends[webid] = {'lat':'', 'long':''};
+            }            // main divs
+            var userclass = 'friend-div';
+            if (me)
+                userclass = 'me';
+            var user_div = new Element('li', {'class': userclass+' inactive', 'id': webid});
+            var pic_div = new Element('div', {'class': 'left'});
+            var name_div = new Element('div', { 'class': 'friend-name'});
+            var dbutton = new Element('input', {'type': 'button', 'class': 'hidden', 'id': 'discover', 'value': 'Select audience'});
+            if (me) {
+                dbutton.setAttribute('onclick', 'prepShare()');
+                dbutton.setAttribute('class', 'share button button-rounded button-flat-primary');
+            }
+
+            // try to fetch the endpoint data
+            if (loc) {
+                var gg = $rdf.graph();
+                var ff = $rdf.fetcher(gg);
+                ff.nowOrWhenFetched(loc.value,undefined,function(){
+                    var la = gg.any(loc, GEO('lat'));
+                    var lo = gg.any(loc, GEO('long'));
+
+                    if (la && lo) {
+                        lat = la;
+                        long = lo;
+                    }
+                    
+                    // add coordinates
+                    if (lat && long) {
+                        user_div.setAttribute('class', userclass+' active');
+                        if (me)
+                            pic_div.setAttribute('onclick', 'initialize()');
+                        else
+                            user_div.setAttribute('onclick', 'codeLatLng(\''+lat+'\', \''+long+'\', 15)');
+
+                        if (!me)
+                            friends[webid] = {'lat':lat.value,'long':long.value};
+                    }
+                });
+            }
+
+            if (name == undefined)
+                name = 'Unknown';
+            else
+                name = name.value;
+
+            if (name.length > 22)
+                name = name.slice(0, 18)+'...';
+
+            if (pic == undefined) {
+                if (depic)
+                    pic = depic.value;
+                else
+                    pic = 'https://rww.io/common/images/nouser.png';
+            } else {
+                pic = pic.value;
+            }
+
+            var pic_elem = new Element('img', { 'class': 'friend-img', 'src': pic, 'alt': name });
+            pic_div.update(pic_elem);
+
+            name_div.update(name);
+
+            // add picture div
+            user_div.appendChild(pic_div);
+            // add name
+            if (!me)
+                user_div.appendChild(name_div);
+            if (dbutton)
+                user_div.appendChild(dbutton);
+
+            $(baseId).insert(user_div);
+        }
+    });
+}
+
+window.onload = init();
+
+</script>
+<div id="alert" style="display: none;">
+    <div id="alertbody" style="display: inline;"></div>
+</div>
+<div class="container" id="main-container">
+    <div id="sidebar">
+        <ul id="me"></ul>
+        <ul>
+            <li id="login"><a id="login-link">Login</a></li>
+            <li id="logout"><a id="logout-link" href="?logout">Logout</a></li>
+            <li id="register"><a id="register-link" onclick="register()">Register</a></li>
+            <li id="list-header" class="list-header">Friends who use FindMe:</li>
+        </ul>
+        <ul id="list">
+        </ul>
+    </div>
+    <div class="main-content">
+        <a data-toggle=".container" id="sidebar-toggle" onclick="openSidebar()">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+
+        </a>
+		<div class="ch-item" onclick="initialize()">
+		    <h3 class="ch-info-def">My position</h3>
+			<div class="ch-info-wrap">
+				<div class="ch-info">
+					<div class="ch-info-front ch-img-2"></div>
+					<div class="ch-info-back">
+						<h3>My position</h3>
+					</div>
+				</div>
+			</div>
+		</div>
+        <div class="content">
+            <div id="map-canvas"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
