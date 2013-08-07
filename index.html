@@ -843,7 +843,7 @@ function register(webid) {
         var basePath = window.location.protocol+'//'+window.location.host+path;
         var endpoint = basePath+'location';
         var frag = '#findMe';
-        
+        /*
         g = $rdf.graph();
         
         // add this triple to the user's profile
@@ -867,6 +867,8 @@ function register(webid) {
         console.log(data);
         
         registerApp(mywebid, data, frag, endpoint);
+        */
+        registerErr(frag, endpoint);
     }
 }
 
