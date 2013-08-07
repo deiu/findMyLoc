@@ -102,7 +102,7 @@ body {
 }
 
 .ch-info-def {
-    top: -25px;
+    top: -35px;
     left: 20px;
     position: relative;
     z-index: 1004;
@@ -242,8 +242,8 @@ body {
     display: block;
     position: relative;
     padding: 20px 17px;
-    margin-top: 10px;
-    margin-left: 10px;
+    margin-top: 20px;
+    margin-left: 20px;
     float: left;
 }
 .main-content #sidebar-toggle .bar{
@@ -821,7 +821,7 @@ function registerErr(frag, endpoint) {
     var register_div = new Element('div', {'class': 'register', 'id': 'reg-info'});
     var txt = '<h2>Failed! You must register manually.</h2>';
     txt = txt+'<h3>Add this triple to your profile document:</h3>';
-    txt = txt+'<pre>'+escapeHtml('<#me> (if this is your foaf:Person)\n ...\n <http://my-profile.eu/ns/webapp#uses> <'+frag+'>')+'</pre>';
+    txt = txt+'<pre>'+escapeHtml('<#me> (if this is your foaf:Person)\n ...\n <http://my-profile.eu/ns/webapp#uses> <'+frag+'> ;')+'</pre>';
     txt = txt+'<h3>And these ones right at the end of the document:</h3>';
     txt = txt+'<pre>(outside foaf:Person)\n'+escapeHtml(profileData)+'</pre>';
     txt = txt+'<h3>Once done, click the Login link at the top.</h3>';
@@ -870,7 +870,6 @@ function register(webid) {
     }
 }
 
-// 
 function once_authenticated(webid) {
     var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
     var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
@@ -891,8 +890,11 @@ function once_authenticated(webid) {
             for (i=0;i<n;i++) {
                 app = apps[i];
                 var service = g.any(app, webapp('service'));
+                var endpoint = g.any(app, webapp('endpoint'));
+                
                 // check if the user registered the app
                 if ((service) && (service.value == appName)) {
+                    var sharing = currently_sharing(endpoint.value);
                     $('list-header').show();
                     $('register').hide();
                     $('logout').show();
@@ -904,6 +906,24 @@ function once_authenticated(webid) {
             }
         } 
         return false;
+    });
+}
+
+// check if we are currently sharing
+function currently_sharing(endpoint) {
+    var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
+    var g = $rdf.graph();
+    var f = $rdf.fetcher(g);
+    var lat, long;
+    f.nowOrWhenFetched(endpoint,undefined,function(){
+        var lat = gg.any(loc, GEO('lat'));
+        var long = gg.any(loc, GEO('long'));
+
+        if (lat && long) {
+            return true;
+        } else {
+            return false;
+        }
     });
 }
 
@@ -1049,7 +1069,7 @@ users.userInfo = function (webid, baseId, me) {
                 pic = pic.value;
             }
 
-            var pic_elem = new Element('img', { 'class': 'friend-img', 'src': pic, 'alt': name });
+            var pic_elem = new Element('img', { 'class': 'friend-img', 'src': pic, 'title': name });
             pic_div.update(pic_elem);
 
             name_div.update(name);
