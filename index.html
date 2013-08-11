@@ -3,7 +3,7 @@
 <script src="https://maps.googleapis.com/maps/api/js?&sensor=true"></script>
 <script src="https://rww.io/common/js/rdflib.js" type="text/javascript"></script>
 <script src="https://rww.io/common/js/prototype.js" type="text/javascript"></script>
-<link rel="stylesheet" href="/common/css/buttons.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="https://rww.io/common/css/buttons.css" type="text/css" media="screen, projection">
 <style>
 body {
     padding: 0px;
@@ -202,13 +202,15 @@ body {
     -o-transition:  background 0.3s ease-in-out;
     transition:  background 0.3s ease-in-out;
 }
-#logout, #login, #register {
+#login, #register {
     background: #e7604a;
     border-bottom: 1px solid #ddd;
 }
+#logout {
+    background: #e7604a;
+}
 
 .list-header {
-    display: none;
     background: #34495e;
     color: #fff;
     text-align: center;
@@ -274,7 +276,7 @@ body {
 .register {
     z-index:1000;
     width:550px;
-    height:450px;
+    height:370px;
     padding: 5px;
     position: absolute;
     top: 10px;
@@ -410,7 +412,7 @@ body {
 
 <script>
 // general variables
-var appName = 'https://findme.rww.io/';
+var appName = 'https://findmyloc.rww.io/';
 
 
 // ----- DO NOT MODIFY BELOW -------
@@ -491,6 +493,20 @@ function put (uri, data, msgOk, msgFail) {
                 notify('Cannot write data', 'error');
             window.setTimeout("notify()", 2000);
             return false;
+        }
+    });
+}
+
+function touch (uri) {
+    var data = '';
+    new HTTP(uri, { 
+        method: 'post',
+        body: data,
+        contentType: 'text/turtle',
+        onFailure: function() {
+            var msg = 'Cannot write to current dir!';
+            alert(msg, 'error');
+            window.setTimeout("alert()", 2000);
         }
     });
 }
@@ -779,7 +795,6 @@ function openSidebar() {
 
 // write to the user's profile or show the triple he must add manually
 function registerApp(uri, data, frag, endpoint) {
-
     new HTTP(uri, {
         method: 'post',
         body: data,
@@ -806,7 +821,7 @@ function registerErr(frag, endpoint) {
     
     g.add($rdf.sym(frag),
             webapp('name'),
-            $rdf.lit('FindMe'));
+            $rdf.lit('FindMyLoc'));
     g.add($rdf.sym(frag),
             webapp('service'),
             $rdf.sym(appName));
@@ -819,12 +834,12 @@ function registerErr(frag, endpoint) {
     var profileData = new $rdf.Serializer(g).toN3(g);
 
     var register_div = new Element('div', {'class': 'register', 'id': 'reg-info'});
-    var txt = '<h2>Failed! You must register manually.</h2>';
-    txt = txt+'<h3>Add this triple to your profile document:</h3>';
-    txt = txt+'<pre>'+escapeHtml('<#me> (if this is your foaf:Person)\n ...\n <http://my-profile.eu/ns/webapp#uses> <'+frag+'> ;')+'</pre>';
-    txt = txt+'<h3>And these ones right at the end of the document:</h3>';
-    txt = txt+'<pre>(outside foaf:Person)\n'+escapeHtml(profileData)+'</pre>';
-    txt = txt+'<h3>Once done, click the Login link at the top.</h3>';
+    var txt = '<h3>Cannot update your profile!</h3>';
+    txt = txt+'<p><strong>You have to manually add the following Turtle triples at the end of the document:</strong></p>';
+    txt = txt+'<small><font color="red">(replace &lt;#me&gt; with your foaf:Person identifier)</font></small>';
+    txt = txt+'<pre>'+escapeHtml('<#me>\n    <http://my-profile.eu/ns/webapp#uses> <'+frag+'> .')+'</pre>';
+    txt = txt+'<pre>'+escapeHtml(profileData)+'</pre>';
+    txt = txt+'<h3>Once you\'re done, log out and then back in.</h3>';
     register_div.innerHTML = txt;
     $('main-container').insert(register_div);
 }
@@ -835,15 +850,18 @@ function register(webid) {
         $('reg-info').show();
     } else { // attempt to write the triples ourselves
         var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
-        
         var path = window.location.pathname;
         if (path.substring(path.length - 1) != '/')
             path = dirname(path)+'/'; // get the root dir for the app
 
         var basePath = window.location.protocol+'//'+window.location.host+path;
         var endpoint = basePath+'location';
-        var frag = '#findMe';
-        /*
+        var frag = '#findMyLoc';
+        
+        // create the intial location file
+        touch(endpoint);
+        
+        // prepare graph
         g = $rdf.graph();
         
         // add this triple to the user's profile
@@ -853,7 +871,7 @@ function register(webid) {
         // add these triples to the profile document
         g.add($rdf.sym(frag),
                 webapp('name'),
-                $rdf.lit('FindMe'));
+                $rdf.lit('FindMyLoc'));
         g.add($rdf.sym(frag),
                 webapp('service'),
                 $rdf.sym(appName));
@@ -865,10 +883,8 @@ function register(webid) {
                 $rdf.lit('Share your location with your friends.'));
         var data = new $rdf.Serializer(g).toN3(g);
         console.log(data);
-        
-        registerApp(mywebid, data, frag, endpoint);
-        */
-        registerErr(frag, endpoint);
+        if (mywebid)
+            registerApp(mywebid, data, frag, endpoint);
     }
 }
 
@@ -882,7 +898,7 @@ function once_authenticated(webid) {
     
     var docURI = webid.slice(0, webid.indexOf('#'));
     var webidRes = g.sym(webid);
-    
+
     // fetch user data
     f.nowOrWhenFetched(docURI,undefined,function(){
         var uris = g.each(webidRes, FOAF('knows'));
@@ -896,17 +912,13 @@ function once_authenticated(webid) {
                 
                 // check if the user registered the app
                 if ((service) && (service.value == appName)) {
-                    var sharing = currently_sharing(endpoint.value);
                     $('list-header').show();
                     $('register').hide();
                     $('logout').show();
-                    users.getList(webid, 'me', 'list');
-                } else { // attempt to register the application
-                    $('register').hide();
-                    register();
+                    currently_sharing(endpoint.value);
                 }
             }
-        } 
+        }
         return false;
     });
 }
@@ -918,14 +930,12 @@ function currently_sharing(endpoint) {
     var f = $rdf.fetcher(g);
     var lat, long;
     f.nowOrWhenFetched(endpoint,undefined,function(){
-        var lat = gg.any(loc, GEO('lat'));
-        var long = gg.any(loc, GEO('long'));
-
-        if (lat && long) {
-            return true;
-        } else {
-            return false;
-        }
+        var lat = g.any($rdf.sym(endpoint), GEO('lat'));
+        var long = g.any($rdf.sym(endpoint), GEO('long'));
+        if (lat && long)
+            users.getList(webid, true, 'me', 'list');
+        else
+            users.getList(webid, false, 'me', 'list');
     });
 }
 
@@ -939,12 +949,13 @@ function init() {
             if ((webid) && (webid.slice(0, 4) == 'http')) {
                 // check if the user is registerd
                 mywebid = webid;
-                $('login').hide();
+                $('login').hide();    
+                $('register').show();
                 once_authenticated(webid);
             } else {
+                $('register').hide();
                 $('logout').hide();
                 $('login').show();
-                $('register').show();
                 $('login-link').setAttribute('href', 'https://'+document.location.host+window.location.pathname);
             }
         }
@@ -954,7 +965,7 @@ function init() {
 // ---------------- user list ---------------
 users = {};
 
-users.getList = function(webid, myId, listId) {
+users.getList = function(webid, active, myId, listId) {
     var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
 
     var g = $rdf.graph();
@@ -967,17 +978,17 @@ users.getList = function(webid, myId, listId) {
     fetch.nowOrWhenFetched(docURI,undefined,function(){
         var uris = g.each(webidRes, FOAF('knows'));
 
-        users.userInfo(webid, myId, true);
+        users.userInfo(webid, active, myId, true);
 
         var i, n = uris.length;
         for (i=0;i<n;i++) {
-            users.userInfo(uris[i].value, listId);
+            users.userInfo(uris[i].value, false, listId);
         }
     });
 }
 
 // get user information (webid, pic and name)
-users.userInfo = function (webid, baseId, me) {
+users.userInfo = function (webid, active, baseId, me) {
     var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
     var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
     var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
@@ -1021,10 +1032,17 @@ users.userInfo = function (webid, baseId, me) {
             var user_div = new Element('li', {'class': userclass+' inactive', 'id': webid});
             var pic_div = new Element('div', {'class': 'left'});
             var name_div = new Element('div', { 'class': 'friend-name'});
-            var dbutton = new Element('input', {'type': 'button', 'class': 'hidden', 'id': 'discover', 'value': 'Select audience'});
+            var dbutton = new Element('input', {'type': 'button', 'class': 'hidden', 'id': 'discover'});
             if (me) {
-                dbutton.setAttribute('onclick', 'prepShare()');
-                dbutton.setAttribute('class', 'share button button-rounded button-flat-primary');
+                if (active == false) {
+                    dbutton.setAttribute('class', 'share button button-rounded button-flat-primary');
+                    dbutton.setAttribute('value', 'Select audience');
+                    dbutton.setAttribute('onclick', 'prepShare()');
+                } else {
+                    dbutton.setAttribute('class', 'share button button-rounded button-flat-caution');
+                    dbutton.setAttribute('value', 'Stop sharing');
+                    dbutton.setAttribute('onclick', 'stopSharing(true)');
+                }
             }
 
             // try to fetch the endpoint data
@@ -1070,7 +1088,7 @@ users.userInfo = function (webid, baseId, me) {
             } else {
                 pic = pic.value;
             }
-
+            console.log('pic='+pic.value+' / name='+name);
             var pic_elem = new Element('img', { 'class': 'friend-img', 'src': pic, 'title': name });
             pic_div.update(pic_elem);
 
@@ -1102,7 +1120,7 @@ window.onload = init();
             <li id="login"><a id="login-link">Login</a></li>
             <li id="logout"><a id="logout-link" href="?logout">Logout</a></li>
             <li id="register"><a id="register-link" onclick="register()">Register</a></li>
-            <li id="list-header" class="list-header">Friends who use FindMe:</li>
+            <li id="list-header" class="list-header" style="display:none;">Friends who use FindMyLoc:</li>
         </ul>
         <ul id="list">
         </ul>
@@ -1115,17 +1133,17 @@ window.onload = init();
             <span class="bar"></span>
 
         </a>
-		<div class="ch-item" onclick="initialize()">
-		    <h3 class="ch-info-def">My position</h3>
-			<div class="ch-info-wrap">
-				<div class="ch-info">
-					<div class="ch-info-front ch-img-2"></div>
-					<div class="ch-info-back">
-						<h3>My position</h3>
-					</div>
-				</div>
-			</div>
-		</div>
+        <div class="ch-item" onclick="initialize()">
+            <h3 class="ch-info-def">My position</h3>
+            <div class="ch-info-wrap">
+                <div class="ch-info">
+                    <div class="ch-info-front ch-img-2"></div>
+                    <div class="ch-info-back">
+                        <h3>My position</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="content">
             <div id="map-canvas"></div>
         </div>
