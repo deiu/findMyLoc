@@ -525,6 +525,23 @@ function notify (message, cls) {
     }
 }
 
+function logout() {
+    if (document.all == null) {
+        if (window.crypto) {
+            try{
+                window.crypto.logout();
+                return false; //firefox ok -- no need to follow the link
+            } catch (err) {//Safari, Opera, Chrome -- try with tis session breaking
+            }
+        }
+    } else { // MSIE 6+
+        document.execCommand('ClearAuthenticationCache');
+        return false;
+    };
+
+    // redirect  
+    location.href=window.location.pathname+'?logout'
+}
 //--------------- google maps -----------------
 var geocoder;
 var map;
@@ -1118,7 +1135,7 @@ window.onload = init();
         <ul id="me"></ul>
         <ul>
             <li id="login"><a id="login-link">Login</a></li>
-            <li id="logout"><a id="logout-link" href="?logout">Logout</a></li>
+            <li id="logout"><a id="logout-link" onclick="logout()">Logout</a></li>
             <li id="register"><a id="register-link" onclick="register()">Register</a></li>
             <li id="list-header" class="list-header" style="display:none;">Friends who use FindMyLoc:</li>
         </ul>
