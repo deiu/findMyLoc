@@ -654,6 +654,7 @@ function shareNow() {
     var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
     var WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
     var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
+
     // meta file graph
     var mg = $rdf.graph();
     // coordinates graph
@@ -833,6 +834,7 @@ function registerApp(uri, data, frag, endpoint) {
 
 function registerErr(frag, endpoint) {
     var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
+    var rdfs = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#");
     // generate triples for profile (just for display)
     var g = $rdf.graph();
     
@@ -846,7 +848,7 @@ function registerErr(frag, endpoint) {
             webapp('endpoint'),
             $rdf.sym(endpoint));
     g.add($rdf.sym(frag),
-            webapp('description'),
+            rdfs('description'),
             $rdf.lit('Share your location with your friends.'));
     var profileData = new $rdf.Serializer(g).toN3(g);
 
@@ -867,6 +869,7 @@ function register(webid) {
         $('reg-info').show();
     } else { // attempt to write the triples ourselves
         var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
+        var rdfs = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#");
         var path = window.location.pathname;
         if (path.substring(path.length - 1) != '/')
             path = dirname(path)+'/'; // get the root dir for the app
@@ -896,7 +899,7 @@ function register(webid) {
                 webapp('endpoint'),
                 $rdf.sym(endpoint));
         g.add($rdf.sym(frag),
-                webapp('description'),
+                rdfs('description'),
                 $rdf.lit('Share your location with your friends.'));
         var data = new $rdf.Serializer(g).toN3(g);
         console.log(data);
