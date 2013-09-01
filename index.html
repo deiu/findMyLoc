@@ -664,7 +664,7 @@ function shareNow() {
     if (path.substring(path.length - 1) != '/')
         path = dirname(path)+'/';
     var basePath = window.location.protocol+'//'+window.location.host+path;
-    var metaPath = basePath+'.meta.location';
+    var metaPath = basePath+'.acl.location';
     var endpoint = basePath+'location';
     var innerRef = '#location';
     // write meta file
