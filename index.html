@@ -654,7 +654,6 @@ function shareNow() {
     var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
     var WAC = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
     var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
-
     // meta file graph
     var mg = $rdf.graph();
     // coordinates graph
@@ -833,8 +832,7 @@ function registerApp(uri, data, frag, endpoint) {
 }
 
 function registerErr(frag, endpoint) {
-    var webapp = $rdf.Namespace("http://ns.rww.io/wapp#");
-    var rdfs = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#");
+    var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
     // generate triples for profile (just for display)
     var g = $rdf.graph();
     
@@ -842,13 +840,13 @@ function registerErr(frag, endpoint) {
             webapp('name'),
             $rdf.lit('FindMyLoc'));
     g.add($rdf.sym(frag),
-            webapp('service'),
+            webapp('serviceId'),
             $rdf.sym(appName));
     g.add($rdf.sym(frag),
             webapp('endpoint'),
             $rdf.sym(endpoint));
     g.add($rdf.sym(frag),
-            rdfs('description'),
+            webapp('description'),
             $rdf.lit('Share your location with your friends.'));
     var profileData = new $rdf.Serializer(g).toN3(g);
 
@@ -856,7 +854,7 @@ function registerErr(frag, endpoint) {
     var txt = '<h3>Cannot update your profile!</h3>';
     txt = txt+'<p><strong>You have to manually add the following Turtle triples at the end of the document:</strong></p>';
     txt = txt+'<small><font color="red">(replace &lt;#me&gt; with your foaf:Person identifier)</font></small>';
-    txt = txt+'<pre>'+escapeHtml('<#me>\n    <http://ns.rww.io/wapp#uses> <'+frag+'> .')+'</pre>';
+    txt = txt+'<pre>'+escapeHtml('<#me>\n    <http://my-profile.eu/ns/webapp#uses> <'+frag+'> .')+'</pre>';
     txt = txt+'<pre>'+escapeHtml(profileData)+'</pre>';
     txt = txt+'<h3>Once you\'re done, log out and then back in.</h3>';
     register_div.innerHTML = txt;
@@ -868,8 +866,7 @@ function register(webid) {
     if ($('reg-info')) {
         $('reg-info').show();
     } else { // attempt to write the triples ourselves
-        var webapp = $rdf.Namespace("http://ns.rww.io/wapp#");
-        var rdfs = $rdf.Namespace("http://www.w3.org/2000/01/rdf-schema#");
+        var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
         var path = window.location.pathname;
         if (path.substring(path.length - 1) != '/')
             path = dirname(path)+'/'; // get the root dir for the app
@@ -893,13 +890,13 @@ function register(webid) {
                 webapp('name'),
                 $rdf.lit('FindMyLoc'));
         g.add($rdf.sym(frag),
-                webapp('service'),
+                webapp('serviceId'),
                 $rdf.sym(appName));
         g.add($rdf.sym(frag),
                 webapp('endpoint'),
                 $rdf.sym(endpoint));
         g.add($rdf.sym(frag),
-                rdfs('description'),
+                webapp('description'),
                 $rdf.lit('Share your location with your friends.'));
         var data = new $rdf.Serializer(g).toN3(g);
         console.log(data);
@@ -909,7 +906,7 @@ function register(webid) {
 }
 
 function once_authenticated(webid) {
-    var webapp = $rdf.Namespace("http://ns.rww.io/wapp#");
+    var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
     var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
     var g = $rdf.graph();
     var f = $rdf.fetcher(g);
@@ -927,7 +924,7 @@ function once_authenticated(webid) {
             var i, n = apps.length, app, loc, is_user=false;
             for (i=0;i<n;i++) {
                 app = apps[i];
-                var service = g.any(app, webapp('service'));
+                var service = g.any(app, webapp('serviceId'));
                 var endpoint = g.any(app, webapp('endpoint'));
                 
                 // check if the user registered the app
@@ -1012,7 +1009,7 @@ users.userInfo = function (webid, active, baseId, me) {
     var RDF = $rdf.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#");
     var FOAF = $rdf.Namespace("http://xmlns.com/foaf/0.1/");
     var GEO = $rdf.Namespace("http://www.w3.org/2003/01/geo/wgs84_pos#");
-    var webapp = $rdf.Namespace("http://ns.rww.io/wapp#");
+    var webapp = $rdf.Namespace("http://my-profile.eu/ns/webapp#");
     var g = $rdf.graph();
     var f = $rdf.fetcher(g);
     // add CORS proxy
@@ -1032,7 +1029,7 @@ users.userInfo = function (webid, active, baseId, me) {
             var i, n = apps.length, app, loc, is_user=false;
             for (i=0;i<n;i++) {
                 app = apps[i];
-                var service = g.any(app, webapp('service'));
+                var service = g.any(app, webapp('serviceId'));
                 if (service.value == appName) {
                     loc = g.any(app, webapp('endpoint'));
                     is_user = true; // uses our app, we add to the list then
@@ -1172,4 +1169,3 @@ window.onload = init();
 
 </body>
 </html>
-
